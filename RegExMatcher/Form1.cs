@@ -41,16 +41,26 @@ namespace RegExMatcher
                     this.BackColor = Color.FromArgb(255, 200, 200);
 
                 matches.Text = "";
-                foreach (Match m in reg.Matches(TextInput.Text))
+                MatchCollection mc = reg.Matches(TextInput.Text);
+                int matchMax = 0;
+                if (mc.Count > 50)
                 {
-                    matches.Text += "Match: " + m.Value + "\r\n   Groups:\r\n";
-
-                    foreach (Group g in m.Groups)
-                    {
-                        matches.Text += "      - " + g.Value + "\r\n";
-                    }
-
+                    matches.Text = "Matches have been truncated at 50 due to an overly liberal regex\r\n\r\n";
+                    matchMax = 50;
                 }
+                else
+                    matchMax = mc.Count;
+
+                for (int i = 0; i < matchMax; i++)
+                {
+                    matches.Text += "Match: " + mc[i].Value + "\r\n   Groups:\r\n";
+                    if (mc[i].Groups.Count < 50)
+                        foreach (Group g in mc[i].Groups)
+                        {
+                            matches.Text += "      - " + g.Value + "\r\n";
+                        }
+                }
+
             }
             catch (Exception ex)
             {
