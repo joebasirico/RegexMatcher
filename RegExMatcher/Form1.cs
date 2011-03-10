@@ -19,6 +19,8 @@ namespace RegExMatcher
 
         private void ValidateText()
         {
+			matches.Text = "";
+
             try
             {
                 invalidRegex.SetError(RegExInput, "");
@@ -34,33 +36,70 @@ namespace RegExMatcher
                 if (ignorePatternWhitespace.Checked)
                     options |= RegexOptions.IgnorePatternWhitespace;
 
-                Regex reg = new Regex(RegExInput.Text, options);
-                if (reg.IsMatch(TextInput.Text))
-                    this.BackColor = Color.FromArgb(200, 255, 200);
-                else
-                    this.BackColor = Color.FromArgb(255, 200, 200);
+				if (!TreatEachLineAsInput.Checked)
+				{
+					Regex reg = new Regex(RegExInput.Text, options);
+					if (reg.IsMatch(TextInput.Text))
+						this.BackColor = Color.FromArgb(200, 255, 200);
+					else
+						this.BackColor = Color.FromArgb(255, 200, 200);
 
-                matches.Text = "";
-                MatchCollection mc = reg.Matches(TextInput.Text);
-                int matchMax = 0;
-                if (mc.Count > 50)
-                {
-                    matches.Text = "Matches have been truncated at 50 due to an overly liberal regex\r\n\r\n";
-                    matchMax = 50;
-                }
-                else
-                    matchMax = mc.Count;
+					MatchCollection mc = reg.Matches(TextInput.Text);
+					int matchMax = 0;
+					if (mc.Count > 50)
+					{
+						matches.Text = "Matches have been truncated at 50 due to an overly liberal regex\r\n\r\n";
+						matchMax = 50;
+					}
+					else
+						matchMax = mc.Count;
 
-                for (int i = 0; i < matchMax; i++)
-                {
-                    matches.Text += "Match: " + mc[i].Value + "\r\n   Groups:\r\n";
-                    if (mc[i].Groups.Count < 50)
-                        foreach (Group g in mc[i].Groups)
-                        {
-                            matches.Text += "      - " + g.Value + "\r\n";
-                        }
-                }
+					for (int i = 0; i < matchMax; i++)
+					{
+						matches.Text += "Match: " + mc[i].Value + "\r\n   Groups:\r\n";
+						if (mc[i].Groups.Count < 50)
+							foreach (Group g in mc[i].Groups)
+							{
+								matches.Text += "      - " + g.Value + "\r\n";
+							}
+					}
+				}
+				else
+				{
+					string[] inputs = Regex.Split(TextInput.Text, "\r\n");
+					bool foundMatch = false;
+					foreach (string input in inputs)
+					{
 
+						Regex reg = new Regex(RegExInput.Text, options);
+						if (reg.IsMatch(input))
+							foundMatch = true;
+
+						MatchCollection mc = reg.Matches(input);
+						int matchMax = 0;
+						if (mc.Count > 10)
+						{
+							matches.Text += "Matches have been truncated at 10 (for this line) due to an overly liberal regex\r\n\r\n";
+							matchMax = 10;
+						}
+						else
+							matchMax = mc.Count;
+
+						for (int i = 0; i < matchMax; i++)
+						{
+							matches.Text += "Match: " + mc[i].Value + "\r\n   Groups:\r\n";
+							if (mc[i].Groups.Count < 50)
+								foreach (Group g in mc[i].Groups)
+								{
+									matches.Text += "      - " + g.Value + "\r\n";
+								}
+						}
+					}
+					if (foundMatch)
+						this.BackColor = Color.FromArgb(200, 255, 200);
+					else
+						this.BackColor = Color.FromArgb(255, 200, 200);
+				}
             }
             catch (Exception ex)
             {
@@ -100,12 +139,12 @@ namespace RegExMatcher
 
         private void ignorePatternWhitespace_CheckedChanged(object sender, EventArgs e)
         {
-            ValidateText();
+			ValidateText();
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
+		private void TreatEachLineAsInput_CheckedChanged(object sender, EventArgs e)
+		{
+			ValidateText();
+		}
     }
 }
